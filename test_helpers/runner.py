@@ -1,10 +1,15 @@
 from pathlib import Path
+from typing import Mapping
 
 from cocotb_tools.runner import get_runner
 
 
 def generate_runner(
-    sources: list[Path], toplevel: str, module: str, waves_name: str | None = None
+    sources: list[Path],
+    toplevel: str,
+    module: str,
+    parameters: Mapping[str, object] = None,
+    waves_name: str | None = None,
 ):
     runner = get_runner("verilator")
     runner.build(
@@ -13,6 +18,7 @@ def generate_runner(
         waves=True,
         always=True,
         build_args=["--trace-fst", "--trace-structs"],
+        parameters=parameters if parameters else {},
     )
 
     runner.test(
@@ -21,7 +27,7 @@ def generate_runner(
         waves=True,
         test_args=[
             "--trace-file",
-            f"../waves/{toplevel}.fst",
+            f"../waves/{waves_name if waves_name else toplevel}.fst",
         ],
     )
 

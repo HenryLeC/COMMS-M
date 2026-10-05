@@ -3,8 +3,14 @@ from cocotb.triggers import ReadWrite, Timer, ReadOnly
 from test_helpers import generate_runner, get_source_files
 
 
-def test_in_port_runner():
-    generate_runner(get_source_files(__file__, ["in_port.sv"], []), "in_port", __name__)
+def test_in_port_bypass_runner():
+    generate_runner(
+        get_source_files(__file__, ["in_port.sv"], []),
+        "in_port",
+        __name__,
+        {"REGISTER_WITH_BYPASS": 1},
+        "in_port_bypass_reg",
+    )
 
 
 async def generate_clock(dut):
@@ -18,7 +24,7 @@ async def generate_clock(dut):
 
 
 @cocotb.test()
-async def test_in_port(dut):
+async def test_in_port_bypass(dut):
     cocotb.start_soon(generate_clock(dut))
 
     await dut.clk.rising_edge
@@ -51,7 +57,15 @@ async def test_in_port(dut):
     assert dut.data_valid.value == 1
 
     await dut.clk.rising_edge
+    await ReadWrite()
+    dut.addr_busses[0].value = 0x1
+    dut.addr_busses[1].value = 0x1
     await ReadOnly()
 
+    assert dut.data.value == 0xCAFECAFE
+    assert dut.data_valid.value == 1
+
+    await dut.clk.rising_edge
+    await ReadOnly()
     assert dut.data.value == 0xCAFECAFE
     assert dut.data_valid.value == 1

@@ -5,7 +5,8 @@ module in_port #(
     parameter N = 2,
     parameter WIDTH = 32,
     parameter ADDR_WIDTH = 6,
-    parameter bit [ADDR_WIDTH-1:0] ADDRESS  = 6'b000000
+    parameter bit [ADDR_WIDTH-1:0] ADDRESS  = 6'b000000,
+    parameter REGISTER_WITH_BYPASS = 0
 )(
     input  wire  clk,
     input  wire  rst_n,
@@ -29,15 +30,40 @@ module in_port #(
             bus_valid[i] <= addr_busses[i] == ADDRESS;
     end
 
+    logic [WIDTH-1:0] data_in;
+    logic             data_in_valid;
+
     int j;
     always_comb begin : bus_mux
-        data_valid = 0;
-        data = 0;
+        data_in = 0;
+        data_in_valid = 0;
         for (j = 0; j < N; j++)
         if (bus_valid[j]) begin
-            data = busses[j];
-            data_valid = 1;
+            data_in = busses[j];
+            data_in_valid = 1;
         end
     end
+
+    generate 
+    if (REGISTER_WITH_BYPASS != 0) begin : bypass_reg_block
+        logic [WIDTH-1:0] data_reg;
+        logic             valid_reg;
+        always_ff @(posedge clk or negedge rst_n)
+        if (!rst_n)
+            {data_reg, valid_reg} <= 0;
+        else if (data_in_valid)
+            {data_reg, valid_reg} <= {data_in, data_in_valid};
+
+        always_comb begin
+            data = data_in_valid ? data_in : data_reg;
+            data_valid = data_in_valid ? 1 : valid_reg;
+        end
+    end else begin : no_reg_block
+        always_comb begin
+            data = data_in;
+            data_valid = data_in_valid;
+        end
+    end
+    endgenerate
 
 endmodule
