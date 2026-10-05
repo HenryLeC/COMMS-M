@@ -5,6 +5,7 @@ from cocotb_tools.runner import get_runner
 
 
 def generate_runner(
+    file: str,
     sources: list[Path],
     toplevel: str,
     module: str,
@@ -17,7 +18,12 @@ def generate_runner(
         hdl_toplevel=toplevel,
         waves=True,
         always=True,
-        build_args=["--trace-fst", "--trace-structs"],
+        build_args=[
+            "--trace-fst",
+            "--trace-structs",
+            "-y",
+            str(Path(file).resolve().parent),
+        ],
         parameters=parameters if parameters else {},
     )
 

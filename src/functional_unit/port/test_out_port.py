@@ -5,7 +5,7 @@ from test_helpers import generate_runner, get_source_files
 
 def test_out_port_runner():
     generate_runner(
-        get_source_files(__file__, ["out_port.sv"], []), "out_port", __name__
+        __file__, get_source_files(__file__, ["out_port.sv"], []), "out_port", __name__
     )
 
 

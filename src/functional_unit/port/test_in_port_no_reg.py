@@ -5,6 +5,7 @@ from test_helpers import generate_runner, get_source_files
 
 def test_in_port_runner():
     generate_runner(
+        __file__,
         get_source_files(__file__, ["in_port.sv"], []),
         "in_port",
         __name__,
